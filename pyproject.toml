@@ -45,12 +45,13 @@ Issues = "https://github.com/safishamsi/graphify/issues"
 mcp = ["mcp"]
 neo4j = ["neo4j"]
 pdf = ["pypdf", "html2text"]
+paper = ["pymupdf", "pdfplumber", "pypdf", "html2text"]
 watch = ["watchdog"]
 svg = ["matplotlib"]
 leiden = ["graspologic; python_version < '3.13'"]
 office = ["python-docx", "openpyxl"]
 video = ["faster-whisper", "yt-dlp"]
-all = ["mcp", "neo4j", "pypdf", "html2text", "watchdog", "graspologic; python_version < '3.13'", "python-docx", "openpyxl", "faster-whisper", "yt-dlp", "matplotlib"]
+all = ["mcp", "neo4j", "pypdf", "html2text", "pymupdf", "pdfplumber", "watchdog", "graspologic; python_version < '3.13'", "python-docx", "openpyxl", "faster-whisper", "yt-dlp", "matplotlib"]
 
 [project.scripts]
 graphify = "graphify.__main__:main"

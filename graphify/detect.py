@@ -190,6 +190,33 @@ def xlsx_to_markdown(path: Path) -> str:
         return ""
 
 
+def convert_pdf_file(path: Path, out_dir: Path) -> Path | None:
+    """Convert a PDF to a markdown sidecar in out_dir using enhanced parsing.
+
+    Uses marker/pymupdf/pdfplumber for better quality extraction,
+    falls back to pypdf for basic text extraction.
+
+    Returns the path of the converted .md file, or None if conversion failed.
+    """
+    try:
+        from graphify.pdf_parser import convert_pdf_file as _convert_pdf
+        return _convert_pdf(path, out_dir, include_metadata=True)
+    except ImportError:
+        # pdf_parser module not available - use basic pypdf extraction
+        text = extract_pdf_text(path)
+        if not text.strip():
+            return None
+        out_dir.mkdir(parents=True, exist_ok=True)
+        import hashlib
+        name_hash = hashlib.sha256(str(path.resolve()).encode()).hexdigest()[:8]
+        out_path = out_dir / f"{path.stem}_{name_hash}.md"
+        out_path.write_text(
+            f"<!-- converted from {path.name} (basic extraction) -->\n\n{text}",
+            encoding="utf-8",
+        )
+        return out_path
+
+
 def convert_office_file(path: Path, out_dir: Path) -> Path | None:
     """Convert a .docx or .xlsx to a markdown sidecar in out_dir.
 
@@ -402,6 +429,21 @@ def detect(root: Path, *, follow_symlinks: bool = False) -> dict:
             continue
         ftype = classify_file(p)
         if ftype:
+            # PDF files: convert to markdown sidecar with enhanced parsing
+            if ftype == FileType.PAPER and p.suffix.lower() == ".pdf":
+                md_path = convert_pdf_file(p, converted_dir)
+                if md_path:
+                    files[ftype].append(str(md_path))
+                    total_words += count_words(md_path)
+                else:
+                    # Conversion failed - try basic text extraction
+                    text = extract_pdf_text(p)
+                    if text.strip():
+                        files[ftype].append(str(p))
+                        total_words += len(text.split())
+                    else:
+                        skipped_sensitive.append(str(p) + " [PDF conversion failed - no extractable text]")
+                continue
             # Office files: convert to markdown sidecar so subagents can read them
             if p.suffix.lower() in OFFICE_EXTENSIONS:
                 md_path = convert_office_file(p, converted_dir)

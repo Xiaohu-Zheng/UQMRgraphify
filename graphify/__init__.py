@@ -19,6 +19,10 @@ def __getattr__(name):
         "to_svg": ("graphify.export", "to_svg"),
         "to_canvas": ("graphify.export", "to_canvas"),
         "to_wiki": ("graphify.wiki", "to_wiki"),
+        "convert_pdf_to_markdown": ("graphify.pdf_parser", "convert_pdf_to_markdown"),
+        "convert_pdf_file": ("graphify.pdf_parser", "convert_pdf_file"),
+        "parse_paper_from_markdown": ("graphify.pdf_parser", "parse_paper_from_markdown"),
+        "get_pdf_converter_info": ("graphify.pdf_parser", "get_pdf_converter_info"),
     }
     if name in _map:
         import importlib

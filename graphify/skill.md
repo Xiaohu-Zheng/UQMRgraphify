@@ -273,6 +273,19 @@ Rules:
 Code files: focus on semantic edges AST cannot find (call relationships, shared data, arch patterns).
   Do not re-extract imports - AST already has those.
 Doc/paper files: extract named concepts, entities, citations. Also extract rationale — sections that explain WHY a decision was made, trade-offs chosen, or design intent. These become nodes with `rationale_for` edges pointing to the concept they explain.
+Academic papers (files with YAML frontmatter type: paper): extract structured academic content:
+  - Title, authors, abstract → create a `paper_info` node with `is_metadata_of` edge to the paper file node
+  - Key contributions → nodes with `claims` edges, label with the contribution statement
+  - Proposed methods/algorithms → nodes with `introduces` edges, include method name and brief description
+  - Equations (LaTeX) → nodes with `defines` edges, preserve LaTeX in the label
+  - Tables → extract as structured concepts, create nodes for key findings with `presented_in` edges
+  - Figures → describe what they demonstrate, create nodes with `illustrates` edges to relevant concepts
+  - Citations → create `reference` nodes with `cites` edges, extract author/year/venue when available
+  - Sections → identify the role (Method, Results, Discussion, etc.), create `section` nodes with `part_of` edges
+  - Datasets/benchmarks → nodes with `evaluates_on` edges to the method nodes
+  - Limitations → nodes with `limitations_of` edges pointing to the relevant method/concept
+  - Future work → nodes with `suggests` edges for proposed directions
+  - Keywords → create concept nodes with `tagged_as` edges from the paper node
 Image files: use vision to understand what the image IS - do not just OCR.
   UI screenshot: layout patterns, design decisions, key elements, purpose.
   Chart: metric, trend/insight, data source.
@@ -310,7 +323,7 @@ confidence_score is REQUIRED on every edge - never omit it, never use 0.5 as a d
 Node ID format: lowercase, only `[a-z0-9_]`, no dots or slashes. Format: `{stem}_{entity}` where stem is the filename without extension and entity is the symbol name, both normalized (lowercase, non-alphanumeric chars replaced with `_`). Example: `src/auth/session.py` + `ValidateToken` → `session_validatetoken`. This must match the ID the AST extractor generates so cross-references between code and semantic nodes connect correctly.
 
 Output exactly this JSON (no other text):
-{"nodes":[{"id":"session_validatetoken","label":"Human Readable Name","file_type":"code|document|paper|image","source_file":"relative/path","source_location":null,"source_url":null,"captured_at":null,"author":null,"contributor":null}],"edges":[{"source":"node_id","target":"node_id","relation":"calls|implements|references|cites|conceptually_related_to|shares_data_with|semantically_similar_to|rationale_for","confidence":"EXTRACTED|INFERRED|AMBIGUOUS","confidence_score":1.0,"source_file":"relative/path","source_location":null,"weight":1.0}],"hyperedges":[{"id":"snake_case_id","label":"Human Readable Label","nodes":["node_id1","node_id2","node_id3"],"relation":"participate_in|implement|form","confidence":"EXTRACTED|INFERRED","confidence_score":0.75,"source_file":"relative/path"}],"input_tokens":0,"output_tokens":0}
+{"nodes":[{"id":"session_validatetoken","label":"Human Readable Name","file_type":"code|document|paper|image","source_file":"relative/path","source_location":null,"source_url":null,"captured_at":null,"author":null,"contributor":null}],"edges":[{"source":"node_id","target":"node_id","relation":"calls|implements|references|cites|conceptually_related_to|shares_data_with|semantically_similar_to|rationale_for|introduces|defines|illustrates|claims|part_of|is_metadata_of|limitations_of|suggests|tagged_as|evaluates_on|presented_in","confidence":"EXTRACTED|INFERRED|AMBIGUOUS","confidence_score":1.0,"source_file":"relative/path","source_location":null,"weight":1.0}],"hyperedges":[{"id":"snake_case_id","label":"Human Readable Label","nodes":["node_id1","node_id2","node_id3"],"relation":"participate_in|implement|form","confidence":"EXTRACTED|INFERRED","confidence_score":0.75,"source_file":"relative/path"}],"input_tokens":0,"output_tokens":0}
 ```
 
 **Step B3 - Collect, cache, and merge**
